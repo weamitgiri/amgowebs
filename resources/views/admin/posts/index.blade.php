@@ -117,7 +117,7 @@
                             <td class="px-3 py-3 text-slate-500">{{ $post->updated_at->format('M j, Y') }}</td>
                             <td class="px-3 py-3 text-right">
                                 <div class="flex items-center justify-end gap-2 text-xs">
-                                    <a href="{{ route('admin.posts.preview', $post) }}" target="_blank" class="text-slate-400 hover:text-slate-700">Preview</a>
+                                    <a href="{{ route('admin.posts.preview-frame', $post) }}" target="_blank" class="text-slate-400 hover:text-slate-700">Preview</a>
                                     @permission('blog.edit')<a href="{{ route('admin.posts.edit', $post) }}" class="text-cyan-600 hover:underline">Edit</a>@endpermission
                                     @permission('blog.create')
                                         <button type="submit" formaction="{{ route('admin.posts.duplicate', $post) }}" class="text-slate-500 hover:underline">Duplicate</button>

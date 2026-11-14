@@ -11,6 +11,7 @@ use App\Models\User;
 use App\Services\BlogCsvService;
 use App\Services\ImageService;
 use App\Services\SeoService;
+use App\Support\ContentQualityChecker;
 use App\Support\HtmlSanitizer;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
@@ -81,6 +82,7 @@ class PostController extends Controller
         return view('admin.posts.form', [
             'post' => new Post(['status' => 'draft']),
             'categories' => Category::with('parent')->orderBy('name')->get(),
+            'quality' => null,
         ]);
     }
 
@@ -96,9 +98,12 @@ class PostController extends Controller
 
     public function edit(Post $post): View
     {
+        $post->load('tags', 'faqs', 'seo');
+
         return view('admin.posts.form', [
-            'post' => $post->load('tags', 'faqs', 'seo'),
+            'post' => $post,
             'categories' => Category::with('parent')->orderBy('name')->get(),
+            'quality' => ContentQualityChecker::check($post),
         ]);
     }
 
@@ -164,6 +169,30 @@ class PostController extends Controller
         abort_if(! $url, 422, 'Could not process the image.');
 
         return response()->json(['url' => $url]);
+    }
+
+    /** Admin preview wrapper: device widths + Google snippet + social card around the live template. */
+    public function previewFrame(Post $post, SeoService $seo): View
+    {
+        return view('admin.posts.preview-frame', [
+            'post' => $post->load('seo'),
+            'seo' => $seo->resolve($post, ['og_type' => 'article']),
+            'url' => url('/blog/'.$post->slug),
+        ]);
+    }
+
+    /** Internal-link search for the editor's linking helper. */
+    public function linkSearch(Request $request): \Illuminate\Http\JsonResponse
+    {
+        $q = trim((string) $request->query('q'));
+        $posts = Post::published()
+            ->when($q !== '', fn ($x) => $x->where('title', 'like', "%{$q}%"))
+            ->latest('published_at')->limit(12)->get(['id', 'title', 'slug']);
+
+        return response()->json($posts->map(fn ($p) => [
+            'title' => $p->title,
+            'url' => url('/blog/'.$p->slug),
+        ])->all());
     }
 
     public function bulk(Request $request): RedirectResponse|BaseStreamedResponse

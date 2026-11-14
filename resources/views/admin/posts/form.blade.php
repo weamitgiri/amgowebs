@@ -18,6 +18,7 @@
         'alt' => old('image_alt', $post->image_alt) ?: '',
         'hasImage' => (bool) $post->featured_image,
         'uploadUrl' => route('admin.posts.image-upload'),
+        'linkSearchUrl' => route('admin.posts.link-search'),
         'csrf' => csrf_token(),
     ];
 @endphp
@@ -39,7 +40,7 @@
 
         {{-- Tabs --}}
         <div class="mb-5 flex flex-wrap gap-2 border-b border-slate-200 pb-3">
-            @foreach (['content' => 'Content', 'seo' => 'SEO Wizard', 'faqs' => 'FAQs'] as $k => $label)
+            @foreach (['content' => 'Content', 'seo' => 'SEO Wizard', 'faqs' => 'FAQs', 'tools' => 'Links & Quality'] as $k => $label)
                 <button type="button" @click="tab='{{ $k }}'" :class="tab==='{{ $k }}' ? 'active' : 'bg-white border border-slate-200 text-slate-600'" class="tabbtn rounded-lg px-4 py-2 text-sm font-medium">
                     {{ $label }}@if ($k === 'faqs') <span class="text-xs opacity-70">(<span x-text="faqs.length"></span>)</span>@endif@if ($k === 'seo') <span class="rounded px-1.5 text-xs" :class="score>=80?'bg-green-200 text-green-800':(score>=50?'bg-amber-200 text-amber-800':'bg-red-200 text-red-800')" x-text="score"></span>@endif
                 </button>
@@ -141,6 +142,47 @@
                         <p x-show="!faqs.length" class="py-6 text-center text-sm text-slate-400">No FAQs yet. Click “Add FAQ”.</p>
                     </div>
                 </div>
+
+                {{-- LINKS & QUALITY TAB --}}
+                <div x-show="tab==='tools'" x-cloak class="space-y-6">
+                    <div class="rounded-xl border border-slate-200 bg-white p-6">
+                        <div class="mb-3 flex items-center justify-between">
+                            <h3 class="font-semibold text-slate-800">Content quality</h3>
+                            @if ($quality)<span class="rounded-lg px-3 py-1 text-sm font-bold {{ $quality['score'] >= 80 ? 'bg-green-100 text-green-700' : ($quality['score'] >= 50 ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700') }}">{{ $quality['score'] }}/100</span>@endif
+                        </div>
+                        @if ($quality)
+                            <ul class="grid gap-1.5 text-sm sm:grid-cols-2">
+                                @foreach ($quality['issues'] as $issue)
+                                    <li class="flex items-center gap-2 {{ $issue['ok'] ? 'text-slate-700' : 'text-slate-400' }}"><span class="{{ $issue['ok'] ? 'text-green-600' : 'text-amber-500' }}">{{ $issue['ok'] ? '✓' : '!' }}</span>{{ $issue['label'] }}</li>
+                                @endforeach
+                            </ul>
+                            @if (! empty($quality['broken']))
+                                <div class="mt-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+                                    <p class="font-medium">Broken internal links found:</p>
+                                    <ul class="mt-1 list-disc pl-5 text-xs">@foreach ($quality['broken'] as $b)<li>/blog/{{ $b }}</li>@endforeach</ul>
+                                </div>
+                            @endif
+                            <p class="mt-3 text-xs text-slate-400">Recalculated every time you save. Clear the warnings before publishing where you can — never keyword-stuff.</p>
+                        @else
+                            <p class="text-sm text-slate-500">Save the blog once and the quality report will appear here.</p>
+                        @endif
+                    </div>
+
+                    <div class="rounded-xl border border-slate-200 bg-white p-6">
+                        <h3 class="mb-2 font-semibold text-slate-800">Internal link helper</h3>
+                        <p class="mb-3 text-xs text-slate-400">Search your published blogs and insert a link at the cursor in the editor. (Place the cursor on the Content tab first.)</p>
+                        <input type="text" x-model="linkQuery" @input.debounce.400ms="searchLinks()" placeholder="Search blogs to link…" class="{{ $inp }} mb-3">
+                        <div class="space-y-1.5">
+                            <template x-for="r in linkResults" :key="r.url">
+                                <div class="flex items-center gap-2 rounded-lg border border-slate-100 px-3 py-2 text-sm">
+                                    <span class="min-w-0 flex-1 truncate" x-text="r.title"></span>
+                                    <button type="button" @click="insertLink(r.url, r.title)" class="rounded border border-slate-300 px-2 py-1 text-xs hover:bg-slate-100">Insert</button>
+                                </div>
+                            </template>
+                            <p x-show="linkQuery && !linkResults.length" class="py-3 text-center text-xs text-slate-400">No matching blogs.</p>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             {{-- SIDEBAR --}}
@@ -195,6 +237,8 @@ function postForm(initial) {
         seo: { title: initial.seoTitle || '', desc: initial.seoDesc || '', focus: initial.focus || '' },
         bodyHtml: '',
         bodyText: '',
+        linkQuery: '',
+        linkResults: [],
         get effTitle() { return this.seo.title || this.title || ''; },
         get titleLen() { return this.effTitle.length; },
         get descLen() { return this.seo.desc.length; },
@@ -245,6 +289,15 @@ function postForm(initial) {
                 .then(r => r.ok ? r.json() : Promise.reject())
                 .then(d => { if (d.url) jQuery(editor).summernote('insertImage', d.url); })
                 .catch(() => alert('Image upload failed. Use JPG/PNG/WebP under 8MB.'));
+        },
+        searchLinks() {
+            if (!this.linkQuery.trim()) { this.linkResults = []; return; }
+            fetch(initial.linkSearchUrl + '?q=' + encodeURIComponent(this.linkQuery), { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                .then(r => r.json()).then(d => { this.linkResults = d; }).catch(() => { this.linkResults = []; });
+        },
+        insertLink(url, title) {
+            jQuery('#body').summernote('pasteHTML', '<a href="' + url + '">' + title + '</a>');
+            this.tab = 'content';
         },
     };
 }

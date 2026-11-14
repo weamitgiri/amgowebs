@@ -80,6 +80,8 @@ Route::middleware('admin')->group(function () {
     Route::post('posts/bulk', [PostController::class, 'bulk'])->middleware('permission:blog.edit')->name('posts.bulk');
     Route::post('posts/image-upload', [PostController::class, 'imageUpload'])->middleware('permission:blog.edit')->name('posts.image-upload');
     Route::get('posts/{post}/preview', [PostController::class, 'preview'])->middleware('permission:blog.view')->name('posts.preview');
+    Route::get('posts/{post}/preview-frame', [PostController::class, 'previewFrame'])->middleware('permission:blog.view')->name('posts.preview-frame');
+    Route::get('posts-link-search', [PostController::class, 'linkSearch'])->middleware('permission:blog.view')->name('posts.link-search');
     Route::post('posts/{post}/duplicate', [PostController::class, 'duplicate'])->middleware('permission:blog.create')->name('posts.duplicate');
 
     // --- Blog categories ---
