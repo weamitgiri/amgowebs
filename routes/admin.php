@@ -75,6 +75,10 @@ Route::middleware('admin')->group(function () {
     Route::get('posts/{post}/edit', [PostController::class, 'edit'])->middleware('permission:blog.edit')->name('posts.edit');
     Route::put('posts/{post}', [PostController::class, 'update'])->middleware('permission:blog.edit')->name('posts.update');
     Route::delete('posts/{post}', [PostController::class, 'destroy'])->middleware('permission:blog.delete')->name('posts.destroy');
+    Route::get('posts-export', [PostController::class, 'export'])->middleware('permission:blog.view')->name('posts.export');
+    Route::post('posts/bulk', [PostController::class, 'bulk'])->middleware('permission:blog.edit')->name('posts.bulk');
+    Route::get('posts/{post}/preview', [PostController::class, 'preview'])->middleware('permission:blog.view')->name('posts.preview');
+    Route::post('posts/{post}/duplicate', [PostController::class, 'duplicate'])->middleware('permission:blog.create')->name('posts.duplicate');
 
     // --- Blog categories ---
     Route::get('categories', [CategoryController::class, 'index'])->middleware('permission:blog.view')->name('categories.index');

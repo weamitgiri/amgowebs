@@ -4,8 +4,9 @@
     // setting can never inject markup. GTM takes precedence (configure GA inside GTM).
     $gtm = trim((string) ($settings['google_tag_manager_id'] ?? ''));
     $ga = trim((string) ($settings['google_analytics_id'] ?? ''));
-    $gtmOk = $gtm !== '' && preg_match('/^GTM-[A-Z0-9]+$/i', $gtm);
-    $gaOk = $ga !== '' && preg_match('/^(G|UA|AW)-[A-Z0-9-]+$/i', $ga);
+    $onPublic = ! request()->is('admin*'); // never track admin-hosted views (e.g. draft preview)
+    $gtmOk = $onPublic && $gtm !== '' && preg_match('/^GTM-[A-Z0-9]+$/i', $gtm);
+    $gaOk = $onPublic && $ga !== '' && preg_match('/^(G|UA|AW)-[A-Z0-9-]+$/i', $ga);
 @endphp
 @if ($gtmOk)
 <!-- Google Tag Manager -->

@@ -17,7 +17,7 @@
 </head>
 <body>
     @php $gtmId = trim((string) ($settings['google_tag_manager_id'] ?? '')); @endphp
-    @if ($gtmId !== '' && preg_match('/^GTM-[A-Z0-9]+$/i', $gtmId))
+    @if ($gtmId !== '' && ! request()->is('admin*') && preg_match('/^GTM-[A-Z0-9]+$/i', $gtmId))
     <!-- Google Tag Manager (noscript) -->
     <noscript><iframe src="https://www.googletagmanager.com/ns.html?id={{ $gtmId }}" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <!-- End Google Tag Manager (noscript) -->

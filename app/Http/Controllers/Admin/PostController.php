@@ -7,22 +7,72 @@ use App\Models\ActivityLog;
 use App\Models\Category;
 use App\Models\Post;
 use App\Models\Tag;
+use App\Models\User;
 use App\Services\ImageService;
+use App\Services\SeoService;
 use App\Support\HtmlSanitizer;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\StreamedResponse as BaseStreamedResponse;
 
 class PostController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
+        $now = now();
+
         return view('admin.posts.index', [
-            'posts' => Post::with('category', 'author')->latest()->paginate(15),
+            'posts' => $this->filtered($request)->paginate(15)->withQueryString(),
+            'stats' => [
+                'total' => Post::count(),
+                'published' => Post::where('status', 'published')->where('published_at', '<=', $now)->count(),
+                'draft' => Post::where('status', 'draft')->count(),
+                'scheduled' => Post::where('status', 'published')->where('published_at', '>', $now)->count(),
+                'categories' => Category::count(),
+                'views' => (int) Post::sum('views'),
+            ],
+            'categories' => Category::orderBy('name')->get(),
+            'authors' => User::whereNotNull('role_id')->orderBy('name')->get(),
+            'filters' => $request->only('q', 'category', 'author', 'status', 'from', 'to'),
         ]);
+    }
+
+    /** Build the filtered listing query shared by the table and CSV export. */
+    private function filtered(Request $request): Builder
+    {
+        $query = Post::with(['category', 'author', 'seo']);
+
+        if ($q = trim((string) $request->query('q'))) {
+            $query->where(fn ($x) => $x->where('title', 'like', "%{$q}%")
+                ->orWhere('slug', 'like', "%{$q}%")
+                ->orWhere('excerpt', 'like', "%{$q}%"));
+        }
+        if ($cat = $request->query('category')) {
+            $query->where('category_id', $cat);
+        }
+        if ($author = $request->query('author')) {
+            $query->where('author_id', $author);
+        }
+        if ($status = $request->query('status')) {
+            match ($status) {
+                'draft' => $query->where('status', 'draft'),
+                'scheduled' => $query->where('status', 'published')->where('published_at', '>', now()),
+                'published' => $query->where('status', 'published')->where('published_at', '<=', now()),
+                default => null,
+            };
+        }
+        if ($from = $request->query('from')) {
+            $query->whereDate('published_at', '>=', $from);
+        }
+        if ($to = $request->query('to')) {
+            $query->whereDate('published_at', '<=', $to);
+        }
+
+        return $query->latest('id');
     }
 
     public function create(): View
@@ -68,6 +118,103 @@ class PostController extends Controller
         ActivityLog::record('post.deleted', "Post “{$title}” deleted");
 
         return redirect()->route('admin.posts.index')->with('status', 'Post deleted.');
+    }
+
+    /** Duplicate a post as a fresh draft (content, image, SEO and tags copied). */
+    public function duplicate(Post $post): RedirectResponse
+    {
+        $copy = $post->replicate(['views']);
+        $copy->title = Str::limit($post->title.' (Copy)', 200, '');
+        $copy->slug = Str::limit($post->slug, 210, '').'-copy-'.Str::lower(Str::random(4));
+        $copy->status = 'draft';
+        $copy->published_at = null;
+        $copy->views = 0;
+        $copy->save();
+
+        $copy->tags()->sync($post->tags->pluck('id'));
+        if ($post->seo) {
+            $copy->seo()->create($post->seo->only([
+                'title', 'description', 'canonical_url', 'robots', 'og_title',
+                'og_description', 'og_image', 'focus_keyword',
+            ]));
+        }
+        ActivityLog::record('post.duplicated', "Post “{$post->title}” duplicated", $copy);
+
+        return redirect()->route('admin.posts.edit', $copy)->with('status', 'Post duplicated as a draft.');
+    }
+
+    /** Authenticated preview using the real frontend template (drafts never public). */
+    public function preview(Post $post, SeoService $seo): View
+    {
+        $post->load(['category', 'tags', 'author', 'seo']);
+
+        return view('site.blog.show', [
+            'post' => $post,
+            'related' => collect(),
+            'seo' => $seo->resolve($post, ['robots' => 'noindex, nofollow', 'og_type' => 'article']),
+        ]);
+    }
+
+    public function bulk(Request $request): RedirectResponse|BaseStreamedResponse
+    {
+        $data = $request->validate([
+            'bulk_action' => ['required', 'in:publish,draft,delete,category,export'],
+            'ids' => ['required', 'array', 'min:1'],
+            'ids.*' => ['integer'],
+            'bulk_category_id' => ['nullable', 'integer', 'exists:categories,id'],
+        ]);
+
+        $ids = $data['ids'];
+
+        if ($data['bulk_action'] === 'export') {
+            return $this->exportCsv(Post::with(['category', 'author', 'seo'])->whereIn('id', $ids)->latest('id'));
+        }
+
+        $count = count($ids);
+        switch ($data['bulk_action']) {
+            case 'publish':
+                Post::whereIn('id', $ids)->whereNull('published_at')->update(['published_at' => now()]);
+                Post::whereIn('id', $ids)->update(['status' => 'published']);
+                break;
+            case 'draft':
+                Post::whereIn('id', $ids)->update(['status' => 'draft']);
+                break;
+            case 'category':
+                Post::whereIn('id', $ids)->update(['category_id' => $data['bulk_category_id'] ?? null]);
+                break;
+            case 'delete':
+                Post::whereIn('id', $ids)->delete();
+                break;
+        }
+        ActivityLog::record('post.bulk', "Bulk “{$data['bulk_action']}” on {$count} post(s)");
+
+        return back()->with('status', ucfirst($data['bulk_action'])." applied to {$count} post(s).");
+    }
+
+    public function export(Request $request): BaseStreamedResponse
+    {
+        return $this->exportCsv($this->filtered($request));
+    }
+
+    private function exportCsv(Builder $query): BaseStreamedResponse
+    {
+        $columns = ['ID', 'Title', 'Slug', 'Category', 'Author', 'Status', 'SEO Score', 'Focus Keyword', 'Meta Title', 'Meta Description', 'Views', 'Published At', 'Updated At', 'URL'];
+
+        return response()->streamDownload(function () use ($query, $columns) {
+            $out = fopen('php://output', 'w');
+            fputcsv($out, $columns);
+            $query->chunk(200, function ($rows) use ($out) {
+                foreach ($rows as $p) {
+                    fputcsv($out, [
+                        $p->id, $p->title, $p->slug, $p->category?->name, $p->author?->name,
+                        $p->state, $p->seo_score, $p->seo?->focus_keyword, $p->seo?->title, $p->seo?->description,
+                        $p->views, optional($p->published_at)->format('Y-m-d H:i'), $p->updated_at->format('Y-m-d H:i'),
+                        url('/blog/'.$p->slug),
+                    ]);
+                }
+            });
+            fclose($out);
+        }, 'blog-posts-'.now()->format('Y-m-d').'.csv', ['Content-Type' => 'text/csv']);
     }
 
     private function validateData(Request $request, ?Post $post = null): array
@@ -118,7 +265,6 @@ class PostController extends Controller
             'image_alt' => $data['image_alt'] ?? null,
         ];
 
-        // Auto-generate SEO-friendly banner + thumbnail (year/month folders) via GD.
         if ($request->hasFile('featured_image')) {
             $variants = app(ImageService::class)->processBlogImage($request->file('featured_image'), $slug);
             if ($variants) {
@@ -132,7 +278,6 @@ class PostController extends Controller
 
     private function syncRelations(Post $post, Request $request): void
     {
-        // Tags (comma-separated, created on the fly)
         $tagNames = collect(explode(',', (string) $request->input('tags')))
             ->map(fn ($t) => trim($t))->filter()->unique();
         $tagIds = $tagNames->map(fn ($name) => Tag::firstOrCreate(
@@ -140,7 +285,6 @@ class PostController extends Controller
         )->id);
         $post->tags()->sync($tagIds);
 
-        // SEO
         if ($request->filled('seo_title') || $request->filled('seo_description')) {
             $post->seo()->updateOrCreate([], [
                 'title' => $request->input('seo_title'),

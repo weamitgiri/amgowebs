@@ -68,4 +68,20 @@ class Post extends Model
     {
         return max(1, (int) ceil(str_word_count(strip_tags((string) $this->body)) / 200));
     }
+
+    /** Real, checkable on-page SEO score 0–100 (see App\Support\SeoScorer). */
+    public function getSeoScoreAttribute(): int
+    {
+        return \App\Support\SeoScorer::score($this);
+    }
+
+    /** draft | scheduled | published (scheduled = published status with a future date). */
+    public function getStateAttribute(): string
+    {
+        if ($this->status !== 'published') {
+            return 'draft';
+        }
+
+        return ($this->published_at && $this->published_at->isFuture()) ? 'scheduled' : 'published';
+    }
 }
