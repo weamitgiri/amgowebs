@@ -41,7 +41,10 @@ return [
         'public' => [
             'driver' => 'local',
             'root' => storage_path('app/public'),
-            'url' => rtrim(env('APP_URL', 'http://localhost'), '/').'/storage',
+            // Use the same base URL as other assets (ASSET_URL when set, e.g. when the
+            // app is served from a subdirectory and public assets live under /public),
+            // falling back to APP_URL for standard setups.
+            'url' => rtrim(env('ASSET_URL', env('APP_URL', 'http://localhost')), '/').'/storage',
             'visibility' => 'public',
             'throw' => false,
             'report' => false,
