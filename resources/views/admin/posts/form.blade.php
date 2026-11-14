@@ -42,7 +42,9 @@
         <div class="mb-5 flex flex-wrap gap-2 border-b border-slate-200 pb-3">
             @foreach (['content' => 'Content', 'seo' => 'SEO Wizard', 'faqs' => 'FAQs', 'tools' => 'Links & Quality'] as $k => $label)
                 <button type="button" @click="tab='{{ $k }}'" :class="tab==='{{ $k }}' ? 'active' : 'bg-white border border-slate-200 text-slate-600'" class="tabbtn rounded-lg px-4 py-2 text-sm font-medium">
-                    {{ $label }}@if ($k === 'faqs') <span class="text-xs opacity-70">(<span x-text="faqs.length"></span>)</span>@endif@if ($k === 'seo') <span class="rounded px-1.5 text-xs" :class="score>=80?'bg-green-200 text-green-800':(score>=50?'bg-amber-200 text-amber-800':'bg-red-200 text-red-800')" x-text="score"></span>@endif
+                    {{ $label }}
+                    @if ($k === 'faqs')<span class="text-xs opacity-70">(<span x-text="faqs.length"></span>)</span>@endif
+                    @if ($k === 'seo')<span class="rounded px-1.5 text-xs" :class="score>=80?'bg-green-200 text-green-800':(score>=50?'bg-amber-200 text-amber-800':'bg-red-200 text-red-800')" x-text="score"></span>@endif
                 </button>
             @endforeach
         </div>
