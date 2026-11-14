@@ -47,7 +47,7 @@ class BlogController extends Controller
 
     public function show(string $slug, SeoService $seo): View
     {
-        $post = Post::published()->with(['category', 'tags', 'author'])->where('slug', $slug)->firstOrFail();
+        $post = Post::published()->with(['category', 'tags', 'author', 'visibleFaqs'])->where('slug', $slug)->firstOrFail();
 
         $brand = Setting::get('seo_organization_name', Setting::get('site_name', config('app.name')));
         $image = $post->social_image ?: $post->featured_image;

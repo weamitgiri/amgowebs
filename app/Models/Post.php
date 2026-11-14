@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Post extends Model
 {
@@ -50,6 +51,17 @@ class Post extends Model
     public function tags(): BelongsToMany
     {
         return $this->belongsToMany(Tag::class);
+    }
+
+    public function faqs(): HasMany
+    {
+        return $this->hasMany(BlogFaq::class)->orderBy('sort_order');
+    }
+
+    /** Only the FAQs that are visible (used for the public accordion + schema). */
+    public function visibleFaqs(): HasMany
+    {
+        return $this->faqs()->where('is_active', true);
     }
 
     public function scopePublished(Builder $query): Builder

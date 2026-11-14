@@ -11,7 +11,8 @@ class SeoMeta extends Model
 
     protected $fillable = [
         'title', 'description', 'canonical_url', 'robots', 'og_title',
-        'og_description', 'og_image', 'focus_keyword', 'schema_json',
+        'og_description', 'og_image', 'focus_keyword', 'secondary_keywords',
+        'search_intent', 'schema_json',
     ];
 
     protected $casts = ['schema_json' => 'array'];

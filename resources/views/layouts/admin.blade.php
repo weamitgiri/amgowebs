@@ -7,6 +7,7 @@
     <title>@yield('title', 'Dashboard') · {{ \App\Models\Setting::get('site_name', config('app.name')) }} Admin</title>
     <meta name="robots" content="noindex, nofollow">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @stack('head')
 </head>
 <body class="h-full bg-slate-100 text-slate-800 antialiased" x-data="{ sidebar: false }">
 <div class="min-h-full lg:flex">
@@ -104,5 +105,6 @@
         </main>
     </div>
 </div>
+@stack('scripts')
 </body>
 </html>

@@ -79,7 +79,7 @@ class PostController extends Controller
     {
         return view('admin.posts.form', [
             'post' => new Post(['status' => 'draft']),
-            'categories' => Category::orderBy('name')->get(),
+            'categories' => Category::with('parent')->orderBy('name')->get(),
         ]);
     }
 
@@ -96,8 +96,8 @@ class PostController extends Controller
     public function edit(Post $post): View
     {
         return view('admin.posts.form', [
-            'post' => $post->load('tags'),
-            'categories' => Category::orderBy('name')->get(),
+            'post' => $post->load('tags', 'faqs', 'seo'),
+            'categories' => Category::with('parent')->orderBy('name')->get(),
         ]);
     }
 
@@ -153,6 +153,16 @@ class PostController extends Controller
             'related' => collect(),
             'seo' => $seo->resolve($post, ['robots' => 'noindex, nofollow', 'og_type' => 'article']),
         ]);
+    }
+
+    /** Summernote in-editor image upload — stores an optimised WebP and returns its URL. */
+    public function imageUpload(Request $request): \Illuminate\Http\JsonResponse
+    {
+        $request->validate(['file' => ['required', 'file', 'mimes:jpeg,jpg,png,gif,webp', 'max:8192']]);
+        $url = app(ImageService::class)->storeInline($request->file('file'));
+        abort_if(! $url, 422, 'Could not process the image.');
+
+        return response()->json(['url' => $url]);
     }
 
     public function bulk(Request $request): RedirectResponse|BaseStreamedResponse
@@ -233,6 +243,19 @@ class PostController extends Controller
             'image_alt' => ['nullable', 'string', 'max:160'],
             'seo_title' => ['nullable', 'string', 'max:255'],
             'seo_description' => ['nullable', 'string', 'max:500'],
+            'focus_keyword' => ['nullable', 'string', 'max:120'],
+            'secondary_keywords' => ['nullable', 'string', 'max:255'],
+            'search_intent' => ['nullable', 'string', 'max:40'],
+            'canonical_url' => ['nullable', 'url', 'max:255'],
+            'robots_index' => ['nullable', 'boolean'],
+            'robots_follow' => ['nullable', 'boolean'],
+            'og_title' => ['nullable', 'string', 'max:255'],
+            'og_description' => ['nullable', 'string', 'max:500'],
+            'og_image' => ['nullable', 'url', 'max:255'],
+            'faqs' => ['nullable', 'array'],
+            'faqs.*.question' => ['nullable', 'string', 'max:255'],
+            'faqs.*.answer' => ['nullable', 'string', 'max:2000'],
+            'faqs.*.is_active' => ['nullable', 'boolean'],
         ]);
     }
 
@@ -285,10 +308,34 @@ class PostController extends Controller
         )->id);
         $post->tags()->sync($tagIds);
 
-        if ($request->filled('seo_title') || $request->filled('seo_description')) {
-            $post->seo()->updateOrCreate([], [
-                'title' => $request->input('seo_title'),
-                'description' => $request->input('seo_description'),
+        // SEO metadata (full wizard). Robots is assembled from the two checkboxes.
+        $robots = ($request->boolean('robots_index') ? 'index' : 'noindex')
+            .', '.($request->boolean('robots_follow') ? 'follow' : 'nofollow');
+
+        $post->seo()->updateOrCreate([], [
+            'title' => $request->input('seo_title'),
+            'description' => $request->input('seo_description'),
+            'focus_keyword' => $request->input('focus_keyword'),
+            'secondary_keywords' => $request->input('secondary_keywords'),
+            'search_intent' => $request->input('search_intent'),
+            'canonical_url' => $request->input('canonical_url'),
+            'robots' => $robots,
+            'og_title' => $request->input('og_title'),
+            'og_description' => $request->input('og_description'),
+            'og_image' => $request->input('og_image'),
+        ]);
+
+        // FAQs — replace with the submitted set, keeping order (rows with no Q&A are skipped).
+        $post->faqs()->delete();
+        foreach (array_values((array) $request->input('faqs', [])) as $i => $faq) {
+            if (blank($faq['question'] ?? null) && blank($faq['answer'] ?? null)) {
+                continue;
+            }
+            $post->faqs()->create([
+                'question' => Str::limit((string) ($faq['question'] ?? ''), 255, ''),
+                'answer' => (string) ($faq['answer'] ?? ''),
+                'sort_order' => $i,
+                'is_active' => ! empty($faq['is_active']),
             ]);
         }
     }

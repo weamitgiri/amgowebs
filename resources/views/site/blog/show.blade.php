@@ -42,6 +42,25 @@
     </div>
 </section>
 
+@php $postFaqs = $post->visibleFaqs; @endphp
+@if ($postFaqs->isNotEmpty())
+<section class="section section--tight">
+    <div class="container" style="max-width:800px">
+        <div class="section-head" data-reveal style="text-align:left;margin-bottom:24px"><span class="eyebrow eyebrow--violet">FAQ</span><h2 class="section-title">Frequently asked questions</h2></div>
+        <div class="faq-list" data-reveal data-delay="1">
+            @foreach ($postFaqs as $faq)
+                <div class="faq-item"><button class="faq-q" type="button">{{ $faq->question }} <span class="pm" data-icon="plus" data-size="16"></span></button><div class="faq-a"><p>{{ $faq->answer }}</p></div></div>
+            @endforeach
+        </div>
+    </div>
+</section>
+@push('schema')
+<script type="application/ld+json">
+{!! json_encode(['@context' => 'https://schema.org', '@type' => 'FAQPage', 'mainEntity' => $postFaqs->map(fn ($f) => ['@type' => 'Question', 'name' => $f->question, 'acceptedAnswer' => ['@type' => 'Answer', 'text' => strip_tags((string) $f->answer)]])->values()->all()], JSON_UNESCAPED_SLASHES) !!}
+</script>
+@endpush
+@endif
+
 @if ($related->isNotEmpty())
 <section class="section section--dark">
     <div class="container">

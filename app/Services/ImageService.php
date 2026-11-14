@@ -30,6 +30,48 @@ class ImageService
     }
 
     /**
+     * Store a single in-content image (e.g. uploaded inside the rich-text editor),
+     * downscaled to a sensible max width and converted to WebP — no cropping.
+     */
+    public function storeInline(UploadedFile $file, string $context = 'blog/content'): ?string
+    {
+        $src = $this->load($file->getRealPath());
+        if (! $src) {
+            return null;
+        }
+
+        $srcW = imagesx($src);
+        $srcH = imagesy($src);
+        $dstW = min(1400, max($srcW, 1));
+        $dstH = (int) round($srcH * ($dstW / max($srcW, 1)));
+
+        $dst = imagecreatetruecolor($dstW, $dstH);
+        imagealphablending($dst, false);
+        imagesavealpha($dst, true);
+        imagecopyresampled($dst, $src, 0, 0, 0, 0, $dstW, $dstH, $srcW, $srcH);
+        imagedestroy($src);
+
+        $webp = function_exists('imagewebp');
+        $ext = $webp ? 'webp' : 'jpg';
+        $name = Str::slug(pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME)) ?: 'image';
+        $suffix = substr(md5($file->getClientOriginalName().microtime()), 0, 6);
+        $relPath = trim($context, '/').'/'.date('Y/m')."/{$name}-{$suffix}.{$ext}";
+
+        ob_start();
+        $ok = $webp ? imagewebp($dst, null, 82) : imagejpeg($dst, null, 82);
+        $binary = ob_get_clean();
+        imagedestroy($dst);
+
+        if (! $ok || $binary === false || $binary === '') {
+            return null;
+        }
+
+        Storage::disk('public')->put($relPath, $binary);
+
+        return Storage::disk('public')->url($relPath);
+    }
+
+    /**
      * @return array{banner:string, thumbnail:string}|null
      */
     public function process(UploadedFile $file, string $context, string $slug): ?array
