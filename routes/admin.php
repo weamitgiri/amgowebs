@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\ActivityController;
 use App\Http\Controllers\Admin\Auth\LoginController;
+use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\InquiryController;
 use App\Http\Controllers\Admin\JobController;
@@ -13,6 +14,7 @@ use App\Http\Controllers\Admin\PostController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\SeoController;
 use App\Http\Controllers\Admin\SettingsController;
+use App\Http\Controllers\Admin\TagController;
 use App\Http\Controllers\Admin\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -73,6 +75,21 @@ Route::middleware('admin')->group(function () {
     Route::get('posts/{post}/edit', [PostController::class, 'edit'])->middleware('permission:blog.edit')->name('posts.edit');
     Route::put('posts/{post}', [PostController::class, 'update'])->middleware('permission:blog.edit')->name('posts.update');
     Route::delete('posts/{post}', [PostController::class, 'destroy'])->middleware('permission:blog.delete')->name('posts.destroy');
+
+    // --- Blog categories ---
+    Route::get('categories', [CategoryController::class, 'index'])->middleware('permission:blog.view')->name('categories.index');
+    Route::get('categories/create', [CategoryController::class, 'create'])->middleware('permission:blog.edit')->name('categories.create');
+    Route::post('categories', [CategoryController::class, 'store'])->middleware('permission:blog.edit')->name('categories.store');
+    Route::get('categories/{category}/edit', [CategoryController::class, 'edit'])->middleware('permission:blog.edit')->name('categories.edit');
+    Route::put('categories/{category}', [CategoryController::class, 'update'])->middleware('permission:blog.edit')->name('categories.update');
+    Route::post('categories/{category}/toggle', [CategoryController::class, 'toggle'])->middleware('permission:blog.edit')->name('categories.toggle');
+    Route::delete('categories/{category}', [CategoryController::class, 'destroy'])->middleware('permission:blog.delete')->name('categories.destroy');
+
+    // --- Blog tags ---
+    Route::get('tags', [TagController::class, 'index'])->middleware('permission:blog.view')->name('tags.index');
+    Route::post('tags', [TagController::class, 'store'])->middleware('permission:blog.edit')->name('tags.store');
+    Route::put('tags/{tag}', [TagController::class, 'update'])->middleware('permission:blog.edit')->name('tags.update');
+    Route::delete('tags/{tag}', [TagController::class, 'destroy'])->middleware('permission:blog.delete')->name('tags.destroy');
 
     // --- Careers / job openings ---
     Route::get('jobs', [JobController::class, 'index'])->middleware('permission:jobs.view')->name('jobs.index');
