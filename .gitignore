@@ -25,3 +25,15 @@ _ide_helper.php
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# Local SQLite databases (dev / testing)
+*.sqlite
+*.sqlite-journal
+
+# Editor / OS temp files
+*.swp
+*.swo
+.fleet/
+
+# Uploaded inquiry files (also covered by storage/app/private/.gitignore)
+/storage/app/private/inquiries
