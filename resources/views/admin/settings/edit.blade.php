@@ -7,7 +7,7 @@
 @endphp
 
 @section('content')
-    <form method="POST" action="{{ route('admin.settings.update') }}" enctype="multipart/form-data"
+    <form method="POST" action="{{ route('admin.settings.update') }}" enctype="multipart/form-data" novalidate
           x-data="{ tab: '{{ $groups->keys()->first() }}' }">
         @csrf @method('PUT')
 
@@ -37,7 +37,7 @@
                             </div>
                             <input type="hidden" name="settings[{{ $setting->key }}]" value="{{ $setting->value }}">
                         @else
-                            <input type="{{ $setting->type === 'email' ? 'email' : ($setting->type === 'url' ? 'url' : 'text') }}" name="settings[{{ $setting->key }}]" value="{{ $setting->value }}" class="{{ $input }}">
+                            <input type="{{ $setting->type === 'email' ? 'email' : ($setting->type === 'url' ? 'url' : 'text') }}" name="settings[{{ $setting->key }}]" value="{{ $setting->value === '#' ? '' : $setting->value }}" class="{{ $input }}" placeholder="{{ $setting->type === 'url' ? 'https://…' : '' }}">
                         @endif
                     </div>
                 @endforeach

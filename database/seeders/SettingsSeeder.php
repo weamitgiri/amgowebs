@@ -32,11 +32,11 @@ class SettingsSeeder extends Seeder
             ['contact', 'telegram', env('SITE_TELEGRAM', 'webveo'), 'text'],
             ['contact', 'address', 'Remote-first — serving clients worldwide', 'textarea'],
 
-            ['social', 'social_facebook', '#', 'url'],
-            ['social', 'social_instagram', '#', 'url'],
-            ['social', 'social_linkedin', '#', 'url'],
-            ['social', 'social_x', '#', 'url'],
-            ['social', 'social_youtube', '#', 'url'],
+            ['social', 'social_facebook', '', 'url'],
+            ['social', 'social_instagram', '', 'url'],
+            ['social', 'social_linkedin', '', 'url'],
+            ['social', 'social_x', '', 'url'],
+            ['social', 'social_youtube', '', 'url'],
 
             ['seo', 'seo_default_title', $brand.' — Professional Websites at Affordable Prices', 'text'],
             ['seo', 'seo_default_description', 'Affordable, professionally designed websites for small businesses — fixed one-time pricing from $199, fast delivery, SEO-ready, and full ownership. Serving businesses worldwide, in every country.', 'textarea'],
