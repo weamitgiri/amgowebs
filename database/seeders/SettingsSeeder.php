@@ -44,8 +44,8 @@ class SettingsSeeder extends Seeder
             ['seo', 'seo_organization_name', $brand, 'text'],
             ['seo', 'seo_robots_default', 'index, follow', 'text'],
 
-            ['analytics', 'google_analytics_id', '', 'text'],
-            ['analytics', 'google_tag_manager_id', '', 'text'],
+            ['analytics', 'google_analytics_id', env('GOOGLE_ANALYTICS_ID', ''), 'text'],
+            ['analytics', 'google_tag_manager_id', env('GOOGLE_TAG_MANAGER_ID', 'GTM-N4X69N6V'), 'text'],
 
             ['mail', 'mail_from_name', $brand, 'text'],
             ['mail', 'inquiry_notify_email', env('SITE_SUPPORT_EMAIL', 'hello@webveo.example'), 'email'],

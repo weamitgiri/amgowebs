@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#05060f">
+    @include('partials.site.analytics')
     @include('partials.site.meta')
     <link rel="icon" type="image/svg+xml" href="{{ asset('img/favicon.svg') }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -15,6 +16,12 @@
     @stack('head')
 </head>
 <body>
+    @php $gtmId = trim((string) ($settings['google_tag_manager_id'] ?? '')); @endphp
+    @if ($gtmId !== '' && preg_match('/^GTM-[A-Z0-9]+$/i', $gtmId))
+    <!-- Google Tag Manager (noscript) -->
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id={{ $gtmId }}" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+    <!-- End Google Tag Manager (noscript) -->
+    @endif
     @include('partials.site.header')
 
     <main>
