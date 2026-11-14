@@ -29,6 +29,7 @@
                     ['Blog', 'admin.posts.index', 'blog.view', 'pen'],
                     ['Categories', 'admin.categories.index', 'blog.view', 'folder'],
                     ['Tags', 'admin.tags.index', 'blog.view', 'tag'],
+                    ['Blog CSV', 'admin.blog-csv.index', 'blog.view', 'upload'],
                     ['Careers', 'admin.jobs.index', 'jobs.view', 'briefcase'],
                     ['Media', 'admin.media.index', 'media.view', 'image'],
                     ['Navigation', 'admin.menus.index', 'menus.manage', 'menu'],

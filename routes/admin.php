@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\ActivityController;
 use App\Http\Controllers\Admin\Auth\LoginController;
+use App\Http\Controllers\Admin\BlogCsvController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\InquiryController;
@@ -95,6 +96,13 @@ Route::middleware('admin')->group(function () {
     Route::post('tags', [TagController::class, 'store'])->middleware('permission:blog.edit')->name('tags.store');
     Route::put('tags/{tag}', [TagController::class, 'update'])->middleware('permission:blog.edit')->name('tags.update');
     Route::delete('tags/{tag}', [TagController::class, 'destroy'])->middleware('permission:blog.delete')->name('tags.destroy');
+
+    // --- Blog CSV import / export ---
+    Route::get('blog-csv', [BlogCsvController::class, 'index'])->middleware('permission:blog.view')->name('blog-csv.index');
+    Route::get('blog-csv/template', [BlogCsvController::class, 'template'])->middleware('permission:blog.view')->name('blog-csv.template');
+    Route::get('blog-csv/export', [BlogCsvController::class, 'export'])->middleware('permission:blog.view')->name('blog-csv.export');
+    Route::post('blog-csv/preview', [BlogCsvController::class, 'preview'])->middleware('permission:blog.create')->name('blog-csv.preview');
+    Route::post('blog-csv/import', [BlogCsvController::class, 'import'])->middleware('permission:blog.create')->name('blog-csv.import');
 
     // --- Careers / job openings ---
     Route::get('jobs', [JobController::class, 'index'])->middleware('permission:jobs.view')->name('jobs.index');

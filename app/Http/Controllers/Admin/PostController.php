@@ -8,6 +8,7 @@ use App\Models\Category;
 use App\Models\Post;
 use App\Models\Tag;
 use App\Models\User;
+use App\Services\BlogCsvService;
 use App\Services\ImageService;
 use App\Services\SeoService;
 use App\Support\HtmlSanitizer;
@@ -177,7 +178,7 @@ class PostController extends Controller
         $ids = $data['ids'];
 
         if ($data['bulk_action'] === 'export') {
-            return $this->exportCsv(Post::with(['category', 'author', 'seo'])->whereIn('id', $ids)->latest('id'));
+            return app(BlogCsvService::class)->streamExport(Post::whereIn('id', $ids)->latest('id'), 'blog-selected');
         }
 
         $count = count($ids);
@@ -203,28 +204,7 @@ class PostController extends Controller
 
     public function export(Request $request): BaseStreamedResponse
     {
-        return $this->exportCsv($this->filtered($request));
-    }
-
-    private function exportCsv(Builder $query): BaseStreamedResponse
-    {
-        $columns = ['ID', 'Title', 'Slug', 'Category', 'Author', 'Status', 'SEO Score', 'Focus Keyword', 'Meta Title', 'Meta Description', 'Views', 'Published At', 'Updated At', 'URL'];
-
-        return response()->streamDownload(function () use ($query, $columns) {
-            $out = fopen('php://output', 'w');
-            fputcsv($out, $columns);
-            $query->chunk(200, function ($rows) use ($out) {
-                foreach ($rows as $p) {
-                    fputcsv($out, [
-                        $p->id, $p->title, $p->slug, $p->category?->name, $p->author?->name,
-                        $p->state, $p->seo_score, $p->seo?->focus_keyword, $p->seo?->title, $p->seo?->description,
-                        $p->views, optional($p->published_at)->format('Y-m-d H:i'), $p->updated_at->format('Y-m-d H:i'),
-                        url('/blog/'.$p->slug),
-                    ]);
-                }
-            });
-            fclose($out);
-        }, 'blog-posts-'.now()->format('Y-m-d').'.csv', ['Content-Type' => 'text/csv']);
+        return app(BlogCsvService::class)->streamExport($this->filtered($request), 'blog-filtered');
     }
 
     private function validateData(Request $request, ?Post $post = null): array
