@@ -13,11 +13,29 @@ class Post extends Model
     use HasSeo;
 
     protected $fillable = [
-        'title', 'slug', 'excerpt', 'body', 'featured_image', 'social_image',
+        'title', 'slug', 'excerpt', 'body', 'featured_image', 'thumbnail', 'social_image', 'image_alt',
         'author_id', 'category_id', 'status', 'published_at', 'views',
     ];
 
     protected $casts = ['published_at' => 'datetime'];
+
+    /** Image shown on listing cards (thumbnail, falling back to the main image). */
+    public function getCardImageAttribute(): ?string
+    {
+        return $this->thumbnail ?: $this->featured_image;
+    }
+
+    /** Large image shown on the post detail / used for Open Graph. */
+    public function getBannerImageAttribute(): ?string
+    {
+        return $this->featured_image ?: $this->thumbnail;
+    }
+
+    /** ALT text, falling back to the post title so images are never unlabelled. */
+    public function getImageAltTextAttribute(): string
+    {
+        return $this->image_alt ?: $this->title;
+    }
 
     public function author(): BelongsTo
     {

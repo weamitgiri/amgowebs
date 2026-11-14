@@ -281,3 +281,25 @@ A self-directed pass (senior-dev/SEO judgment) to deepen content and internal-li
 **Verified:** 29/29 tests pass; `/careers`, all 5 job pages, home, about, portfolio and new blog posts return 200; JobPosting + BreadcrumbList schema present; sitemap includes careers + job URLs; Telegram button live and WhatsApp removed; `team_size`/`telegram` settings present; contact form has file upload; 24 published posts, 5 published jobs. Both migrations are additive and non-destructive.
 
 > **How traffic grows from here (senior-analyst view):** the site now has far more indexable, genuinely useful content (24 articles + service + careers pages), strong internal linking from the homepage to money pages, JobPosting eligibility for Google Jobs, faster trust-building (50+ team, Telegram, file upload lowers friction to send requirements). Rankings still build over time and can't be guaranteed — the owner must set the live `APP_URL`, submit the sitemap in Search Console, add real branding/testimonials, and keep publishing.
+
+---
+
+## 17. Round 6 addendum — blog images (auto banner + thumbnail), ALT, and a fuller home FAQ
+
+**Blog featured images — upload once, variants auto-generated:**
+- New `App\Services\ImageService` (pure PHP GD, no new packages) turns a single upload into two cover-cropped, optimised **WebP** variants: a **1600×900 banner** (article hero + Open Graph) and a **640×400 thumbnail** (listing cards). It never upscales past the source.
+- Files are stored on the public disk in **year/month folders with slugged, SEO-friendly names**, e.g. `blog/2026/11/my-post-banner-ab12cd.webp`.
+- New `posts.thumbnail` and `posts.image_alt` columns (migration). Admin Blog form now has the image upload plus an **ALT text** field (falls back to the post title, so images are never unlabelled).
+
+**Images now actually display (they were uploaded but never shown):**
+- A shared `partials/site/post-card` renders the thumbnail with `alt`, `loading="lazy"`, `decoding="async"` and explicit `width`/`height` (good for Core Web Vitals / no layout shift) across the blog listing, related posts, and the homepage teaser. A clean gradient + valid icon is shown when a post has no image. (Also fixed the old invalid `pen` icon that rendered blank.)
+- The article detail page shows the **banner** above the body (`fetchpriority="high"`, explicit dimensions).
+- Blog posts now emit a correct **`og:image`** (their banner) via the SEO service, plus `og:image:alt` / `twitter:image:alt` on every page.
+- Page content images (`text + image` sections) get `loading="lazy"` + `decoding="async"`; hero banner images already supported (admin-set).
+
+**Home page FAQ expanded (better crawlability / AEO):**
+- The homepage FAQ went from 4 to **9 questions** covering cost, timeline, ownership, countries, SEO, mobile, hosting/domain, redesigns and how to start — all emitted as **FAQPage** structured data so Google (and AI answer engines) can describe the whole business from one page.
+
+**Verified:** 29/29 tests pass; ImageService confirmed producing valid WebP banner (1200×675 from a 1200px source — no upscaling) + 640×400 thumbnail in `blog/2026/11/`; home FAQPage has 9 questions; blog/careers/home all 200; no `pen` icon remains; `storage` symlink present locally.
+
+> **Deploy steps for images (do on Hostinger after pulling):** 1) run the new migration — `php artisan migrate --force`; 2) ensure the storage symlink exists so uploaded images are web-accessible — `php artisan storage:link` (or, in File Manager, create `public_html/public/storage` pointing to `public_html/storage/app/public`). Without the symlink, uploaded images won't display. Uploaded image files live under `storage/app/public/blog/...` and are **not** committed to git (user content).

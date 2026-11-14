@@ -499,6 +499,11 @@ body::after {
 .tg-float:hover { transform: scale(1.08); }
 .tg-float svg { margin-left: -2px; }
 .pill { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 600; color: var(--text); background: var(--glass); border: 1px solid var(--line-2); padding: 6px 13px; border-radius: 999px; }
+
+/* Blog card thumbnails & article banner */
+.blog-card .thumb img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+.blog-card .thumb .cat { z-index: 2; }
+.post-banner { width: 100%; height: auto; border-radius: var(--radius-lg); border: 1px solid var(--line); display: block; }
 .callback-float { position: fixed; right: 22px; bottom: 22px; z-index: 90; display: flex; align-items: center; gap: 12px; background: rgba(12, 14, 32, .9); border: 1px solid var(--line-2); border-radius: 999px; padding: 10px 18px 10px 12px; backdrop-filter: blur(14px); box-shadow: var(--shadow); }
 .callback-float .cf-ic { width: 42px; height: 42px; border-radius: 50%; background: var(--grad-btn); display: grid; place-items: center; color: #fff; }
 .callback-float b { color: #fff; font-family: var(--font-head); font-size: 14px; display: flex; align-items: center; gap: 8px; }

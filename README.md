@@ -22,7 +22,8 @@ A full-featured Laravel CMS for an international web-design agency: a dynamic pu
 - Global targeting: worldwide `areaServed` schema, `hreflang` x-default/en, and a full-country inquiry form (no geo restriction)
 - Project-inquiry funnel: validated form → stored lead with a unique reference → confirmation page → queued confirmation + admin-notification emails
 - Nav & footer from the database, per-page SEO (title, meta, canonical, Open Graph, JSON-LD schema)
-- Structured data: Organization + WebSite (site-wide), BreadcrumbList, BlogPosting, Service/Offer, and FAQPage (from visible FAQ content)
+- Structured data: Organization + WebSite (site-wide), BreadcrumbList, BlogPosting, Service/Offer, JobPosting, and FAQPage (the home page ships a 9-question FAQ for rich crawlability)
+- Blog images: upload one featured image and a WebP **banner (1600×900)** + **thumbnail (640×400)** are generated automatically (GD) into year/month SEO-named folders, with ALT text, lazy-loading and `og:image`
 - Dynamic `sitemap.xml` (de-duplicated), `robots.txt`, and database-driven 301/302 redirects
 
 ### Admin panel (`/admin`, role-based)

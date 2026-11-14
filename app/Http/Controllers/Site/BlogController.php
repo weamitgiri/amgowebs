@@ -72,11 +72,16 @@ class BlogController extends Controller
             'wordCount' => str_word_count(strip_tags((string) $post->body)),
         ], fn ($v) => !is_null($v) && $v !== '');
 
+        $overrides = ['schema' => $schema, 'og_type' => 'article'];
+        if ($image) {
+            $overrides['og_image'] = url($image);
+        }
+
         return view('site.blog.show', [
             'post' => $post,
             'related' => Post::published()->where('id', '!=', $post->id)
                 ->where('category_id', $post->category_id)->latest('published_at')->limit(3)->get(),
-            'seo' => $seo->resolve($post, ['schema' => $schema, 'og_type' => 'article']),
+            'seo' => $seo->resolve($post, $overrides),
         ]);
     }
 }

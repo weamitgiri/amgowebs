@@ -87,6 +87,11 @@ class PageSeeder extends Seeder
                             ['question' => 'How long will my website take?', 'answer' => 'Starter sites are usually delivered in about 7 days, Business sites in around 12 days, and Premium sites in roughly 3 weeks — depending on how quickly you share content and feedback.'],
                             ['question' => 'Do I own my website once it is built?', 'answer' => 'Yes. You own your website, its code and all content outright. There is no monthly lock-in — you can host it anywhere, and we will help you set it up.'],
                             ['question' => 'Which countries do you work with?', 'answer' => 'Every country. We are a remote-first studio and work with businesses anywhere in the world — every project is handled online, so your location is never a barrier.'],
+                            ['question' => 'Is my website good for SEO?', 'answer' => 'Yes. Every website we build includes on-page SEO fundamentals — clean titles and meta descriptions, logical headings, fast performance, an XML sitemap and structured data — so search engines can crawl and understand your pages from day one.'],
+                            ['question' => 'Will my website work on mobile phones?', 'answer' => 'Always. Every site is mobile-first and tested across phones, tablets and desktops, with fast load times and accessible, readable layouts.'],
+                            ['question' => 'Do you provide hosting and a domain?', 'answer' => 'We focus on design and development rather than reselling hosting, so your website stays in your own name and you can host it wherever you prefer. We will guide you through choosing a reliable host and connecting your domain at no extra charge.'],
+                            ['question' => 'Can you redesign my existing website?', 'answer' => 'Yes. We can rebuild an outdated, slow or hard-to-edit site into a modern, fast one while preserving your existing URLs and search rankings wherever possible.'],
+                            ['question' => 'How do I get started?', 'answer' => 'Share your requirements through our short project form and we will reply quickly with a free quote and a 15-minute review call to confirm scope, timeline and a fixed price before any work begins.'],
                         ],
                     ]],
                     ['type' => 'cta', 'data' => [

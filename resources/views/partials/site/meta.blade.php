@@ -53,11 +53,11 @@
 <meta property="og:description" content="{{ $ogDesc }}">
 <meta property="og:url" content="{{ $canonical }}">
 <meta property="og:locale" content="{{ str_replace('-', '_', app()->getLocale()) }}">
-@if ($ogImage)<meta property="og:image" content="{{ $ogImage }}">@endif
+@if ($ogImage)<meta property="og:image" content="{{ $ogImage }}"><meta property="og:image:alt" content="{{ $ogTitle }}">@endif
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="{{ $ogTitle }}">
 <meta name="twitter:description" content="{{ $ogDesc }}">
-@if ($ogImage)<meta name="twitter:image" content="{{ $ogImage }}">@endif
+@if ($ogImage)<meta name="twitter:image" content="{{ $ogImage }}"><meta name="twitter:image:alt" content="{{ $ogTitle }}">@endif
 
 {{-- Organization + WebSite structured data (site-wide) --}}
 <script type="application/ld+json">

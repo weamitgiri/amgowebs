@@ -20,6 +20,12 @@
     </div>
 </section>
 
+@if ($post->banner_image)
+<div class="container" style="max-width:880px;margin-top:8px">
+    <img src="{{ $post->banner_image }}" alt="{{ $post->image_alt_text }}" width="1600" height="900" fetchpriority="high" class="post-banner" data-reveal>
+</div>
+@endif
+
 <section class="section section--tight">
     <div class="container" style="max-width:800px">
         <div class="prose" style="margin-inline:auto" data-reveal>
@@ -42,10 +48,7 @@
         <div class="section-head center" data-reveal><span class="eyebrow">Keep reading</span><h2 class="section-title">Related articles</h2></div>
         <div class="blog-grid">
             @foreach ($related as $post)
-                <a class="blog-card" href="{{ route('blog.show', $post->slug) }}" data-reveal>
-                    <div class="thumb"><span class="cat">{{ $post->category?->name ?? 'Article' }}</span><span data-icon="pen" data-size="40" style="color:var(--cyan);opacity:.4"></span></div>
-                    <div class="bc-body"><div class="meta">{{ $post->published_at?->format('M j, Y') }}</div><h3>{{ $post->title }}</h3><p>{{ $post->excerpt }}</p><span class="read">Read <span data-icon="arrow" data-size="15"></span></span></div>
-                </a>
+                @include('partials.site.post-card')
             @endforeach
         </div>
     </div>

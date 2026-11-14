@@ -7,6 +7,7 @@ use App\Models\ActivityLog;
 use App\Models\Category;
 use App\Models\Post;
 use App\Models\Tag;
+use App\Services\ImageService;
 use App\Support\HtmlSanitizer;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -81,7 +82,8 @@ class PostController extends Controller
             'tags' => ['nullable', 'string', 'max:500'],
             'status' => ['required', Rule::in(['draft', 'published'])],
             'published_at' => ['nullable', 'date'],
-            'featured_image' => ['nullable', 'mimes:jpeg,jpg,png,gif,webp', 'max:4096'],
+            'featured_image' => ['nullable', 'mimes:jpeg,jpg,png,gif,webp', 'max:8192'],
+            'image_alt' => ['nullable', 'string', 'max:160'],
             'seo_title' => ['nullable', 'string', 'max:255'],
             'seo_description' => ['nullable', 'string', 'max:500'],
         ]);
@@ -102,21 +104,27 @@ class PostController extends Controller
             $publishedAt = now();
         }
 
+        $slug = ($data['slug'] ?? null) ?: Str::slug($data['title']);
+
         $payload = [
             'title' => $data['title'],
-            'slug' => ($data['slug'] ?? null) ?: Str::slug($data['title']),
+            'slug' => $slug,
             'excerpt' => $data['excerpt'] ?? null,
             'body' => HtmlSanitizer::clean($data['body'] ?? null),
             'category_id' => $categoryId,
             'status' => $data['status'],
             'published_at' => $publishedAt,
             'author_id' => auth()->id(),
+            'image_alt' => $data['image_alt'] ?? null,
         ];
 
+        // Auto-generate SEO-friendly banner + thumbnail (year/month folders) via GD.
         if ($request->hasFile('featured_image')) {
-            $payload['featured_image'] = \Storage::disk('public')->url(
-                $request->file('featured_image')->store('posts', 'public')
-            );
+            $variants = app(ImageService::class)->processBlogImage($request->file('featured_image'), $slug);
+            if ($variants) {
+                $payload['featured_image'] = $variants['banner'];
+                $payload['thumbnail'] = $variants['thumbnail'];
+            }
         }
 
         return $payload;

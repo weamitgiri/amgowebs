@@ -9,7 +9,7 @@
             </div>
             <div class="about-visual" data-reveal data-delay="1" style="{{ $left ? 'order:1' : '' }}">
                 @if (!empty($d['image_url']))
-                    <img src="{{ $d['image_url'] }}" alt="{{ $d['heading'] ?? '' }}" style="width:100%;height:100%;object-fit:cover;border-radius:var(--radius-xl)">
+                    <img src="{{ $d['image_url'] }}" alt="{{ $d['heading'] ?? '' }}" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover;border-radius:var(--radius-xl)">
                 @else
                     <div class="glow-ball"></div>
                 @endif

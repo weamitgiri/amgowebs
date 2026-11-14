@@ -64,9 +64,15 @@
 
                 <div class="rounded-xl border border-slate-200 bg-white p-6 space-y-3">
                     <h3 class="font-semibold text-slate-800">Featured image</h3>
-                    @if ($post->featured_image)<img src="{{ $post->featured_image }}" alt="" class="mb-2 h-28 w-full rounded-lg border border-slate-200 object-cover">@endif
+                    @if ($post->featured_image)<img src="{{ $post->featured_image }}" alt="{{ $post->image_alt }}" class="mb-2 h-28 w-full rounded-lg border border-slate-200 object-cover">@endif
                     <input type="file" name="featured_image" accept="image/*" class="text-sm">
+                    <p class="text-xs text-slate-400">Upload once — a wide banner (1600×900) and a card thumbnail (640×400) are created automatically as optimised WebP, in year/month folders.</p>
                     @error('featured_image')<p class="text-xs text-red-600">{{ $message }}</p>@enderror
+                    <div>
+                        <label class="mb-1 block text-sm font-medium text-slate-600">Image ALT text <span class="text-slate-400">(for SEO &amp; accessibility)</span></label>
+                        <input name="image_alt" value="{{ old('image_alt', $post->image_alt) }}" placeholder="Describe the image (defaults to the title)" class="{{ $input }}">
+                        @error('image_alt')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
+                    </div>
                 </div>
             </div>
         </div>

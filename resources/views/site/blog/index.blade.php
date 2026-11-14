@@ -27,15 +27,7 @@
         @else
             <div class="blog-grid">
                 @foreach ($posts as $post)
-                    <a class="blog-card" href="{{ route('blog.show', $post->slug) }}" data-reveal>
-                        <div class="thumb"><span class="cat">{{ $post->category?->name ?? 'Article' }}</span><span data-icon="pen" data-size="40" style="color:var(--cyan);opacity:.4"></span></div>
-                        <div class="bc-body">
-                            <div class="meta">{{ $post->published_at?->format('M j, Y') }} · {{ $post->reading_time }} min read</div>
-                            <h3>{{ $post->title }}</h3>
-                            <p>{{ $post->excerpt }}</p>
-                            <span class="read">Read Article <span data-icon="arrow" data-size="15"></span></span>
-                        </div>
-                    </a>
+                    @include('partials.site.post-card')
                 @endforeach
             </div>
             <div style="margin-top:40px">{{ $posts->links() }}</div>
