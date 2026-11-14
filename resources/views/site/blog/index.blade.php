@@ -30,7 +30,7 @@
                     @include('partials.site.post-card')
                 @endforeach
             </div>
-            <div style="margin-top:40px">{{ $posts->links() }}</div>
+            <div style="margin-top:44px">{{ $posts->links('partials.site.pagination') }}</div>
         @endif
     </div>
 </section>
