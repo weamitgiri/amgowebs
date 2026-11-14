@@ -40,11 +40,11 @@ return [
 
         'public' => [
             'driver' => 'local',
-            'root' => storage_path('app/public'),
-            // Use the same base URL as other assets (ASSET_URL when set, e.g. when the
-            // app is served from a subdirectory and public assets live under /public),
-            // falling back to APP_URL for standard setups.
-            'url' => rtrim(env('ASSET_URL', env('APP_URL', 'http://localhost')), '/').'/storage',
+            // Store uploads in a REAL folder under the web root (public/uploads) so they
+            // need no `storage:link` symlink — which shared hosting (e.g. Hostinger)
+            // often cannot create. The URL mirrors the asset base (ASSET_URL, else APP_URL).
+            'root' => public_path('uploads'),
+            'url' => rtrim(env('ASSET_URL', env('APP_URL', 'http://localhost')), '/').'/uploads',
             'visibility' => 'public',
             'throw' => false,
             'report' => false,
