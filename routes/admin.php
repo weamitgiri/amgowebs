@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\ActivityController;
+use App\Http\Controllers\Admin\AnalyticsController;
 use App\Http\Controllers\Admin\Auth\LoginController;
 use App\Http\Controllers\Admin\BlogCsvController;
 use App\Http\Controllers\Admin\CategoryController;
@@ -36,6 +37,7 @@ Route::middleware('admin')->group(function () {
     Route::post('logout', [LoginController::class, 'logout'])->name('logout');
 
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('analytics', [AnalyticsController::class, 'index'])->middleware('permission:dashboard.view')->name('analytics.index');
 
     // --- Lead / inquiry management ---
     Route::get('inquiries', [InquiryController::class, 'index'])->middleware('permission:inquiries.view')->name('inquiries.index');

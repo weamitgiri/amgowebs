@@ -23,6 +23,7 @@
             @php
                 $nav = [
                     ['Dashboard', 'admin.dashboard', 'dashboard.view', 'grid'],
+                    ['Visitors', 'admin.analytics.index', 'dashboard.view', 'chart'],
                     ['Inquiries', 'admin.inquiries.index', 'inquiries.view', 'inbox'],
                     ['Packages', 'admin.packages.index', 'packages.view', 'box'],
                     ['Pages', 'admin.pages.index', 'pages.view', 'file'],
